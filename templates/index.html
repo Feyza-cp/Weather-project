@@ -1,0 +1,340 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hava Durumu Sorgula</title>
+    <style>
+    body { 
+        font-family: Arial, sans-serif; 
+        text-align: center; 
+        margin: 40px; 
+        transition: background 0.5s ease-in-out; 
+    }
+
+    .container { 
+        max-width: 400px; 
+        margin: auto; 
+        padding: 20px; 
+        border: 1px solid #ddd; 
+        border-radius: 10px; 
+        background: #f9f9f9; 
+    }
+
+    input, button { 
+        margin-top: 10px; 
+        padding: 10px; 
+        width: 90%; 
+    }
+
+    .important { 
+        color: red; 
+        font-weight: bold; 
+    }
+ /* Hava durumu simgelerinin stilleri */
+ .weather-box {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f0f0f0;
+            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .weather-box:hover {
+            transform: scale(1.1);
+            box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.3);
+        }
+    .weather-image {
+    width: 120px; /* Simge boyutu */
+    height: 120px;
+    border-radius: 50%; /* Yuvarlak çerçeve */
+    border: 4px solid #bae5fa; /* Çerçeve rengi */
+    padding: 10px;
+    box-shadow: 0 0 20px rgba(152, 94, 197, 0.5); /* Gölge efekti */
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out; /* Yumuşak geçiş */
+}
+
+.weather-image:hover {
+    transform: scale(1.1); /* Hafif büyütme efekti */
+    box-shadow: 0 0 40px rgba(95, 223, 255, 0.8); /* Canlı gölge efekti */
+}
+
+.weather-image:active {
+    transform: scale(1.2); /* Tıklanınca büyütme */
+    box-shadow: 0 0 50px rgba(95, 223, 255, 1); /* Daha güçlü bir gölge efekti */
+}
+
+</style>
+
+
+    <!-- Material Icons için Link -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Weather Icons için Link -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.10/css/weather-icons.min.css">
+    <script>
+        const iller = {
+      "Adana": ["Seyhan", "Yüreğir", "Çukurova", "Sarıçam", "Aladağ", "Ceyhan", "Kozan", "Feke", "İmamoğlu", "Pozantı", "Karataş", "Yumurtalık", "Saimbeyli", "Tufanbeyli"],
+      "Adıyaman": ["Merkez", "Kahta", "Besni", "Gölbaşı", "Tut", "Çelikhan", "Samsat", "Gerger", "Şambayat", "Almus", "Karaköprü", "Doğançay", "Yeniköy", "Taşlıca"],
+      "Afyonkarahisar": ["Merkez", "Sandıklı", "Dinar", "Emirdağ", "Bolvadin", "İhsaniye", "Şuhut", "Sinanpaşa", "Çay", "Kızılören", "Hocalar", "Sultandağı", "Bayat", "Çiftlik", "İscehisar"],
+      "Ağrı": ["Merkez", "Patnos", "Doğubayazıt", "Tuzluca", "Eleşkirt", "Ağrı Merkez", "Taşlıçay", "Hamur", "Diyadin", "Aras", "Bayazıt", "Tutak"],
+      "Amasya": ["Merkez", "Suluova", "Gümüşhacıköy", "Taşova", "Hamamözü", "Merzifon", "Büyükdüz", "Yeşilyurt"],
+      "Ankara": ["Çankaya", "Keçiören", "Yenimahalle", "Mamak", "Altındağ", "Sincan", "Etimesgut", "Çubuk", "Gölbaşı", "Polatlı", "Kızılcahamam", "Bala", "Ayaş", "Nallıhan", "Şereflikoçhisar", "Pursaklar"],
+      "Antalya": ["Muratpaşa", "Kepez", "Konyaaltı", "Aksu", "Döşemealtı", "Alanya", "Kemer", "Serik", "Kumluca", "Demre", "Finike", "Elmalı", "Korkuteli", "Gazipaşa", "Manavgat", "Akseki", "İbradı"],
+      "Artvin": ["Merkez", "Arhavi", "Hopa", "Borçka", "Murgul", "Şavşat", "Yusufeli", "Kemalpaşa", "Döşeme", "Merkez", "Ardanuc", "Hanak"],
+      "Aydın": ["Efeler", "Söke", "Nazilli", "Kuşadası", "Didim", "Bozdoğan", "Karpuzlu", "Karacasu", "Çine", "Köşk", "İncirliova", "Buharkent", "Germencik", "Sultanhisar", "Koçarlı", "Büyükşehir"],
+      "Balıkesir": ["Merkez", "Ayvalık", "Burhaniye", "Edremit", "Erdek", "Gönen", "Kepsut", "Manyas", "Marmara", "Susurluk", "Sındırgı", "Bigadiç", "Dursunbey", "İvrindi", "Altıeylül"],
+      "Bilecik": ["Merkez", "İnhisar", "Bozüyük", "Gölpazarı", "Pazaryeri", "Söğüt", "Yenipazar", "Bilecik", "Köprüköy"],  "Bilecik": ["Tüm ilçeler", "Merkez", "Söğüt", "İnhisar", "Bozüyük"],
+      "Bingöl": ["Adaklı", "Genç", "Karlıova", "Kiğı", "Solhan", "Yedisu", "Merkez"],
+      "Bitlis": ["Ahlat", "Güroymak", "Hizan", "Mutki", "Tatvan", "Merkez"],
+      "Bolu": ["Gerede", "Göynük", "Kıbrıscık", "Mengen", "Mudurnu", "Seben", "Yeniçağa", "Merkez"],
+      "Burdur": ["Ağlasun", "Bucak", "Çavdır", "Gölhisar", "Karamanlı", "Kemer", "Tefenni", "Merkez"],
+      "Bursa": ["Gemlik", "Gönen", "Harmancık", "İnegöl", "Karacabey", "Keles", "Mudanya", "Mustafakemalpaşa", "Nilüfer", "Orhangazi", "Osmangazi", "Yenişehir", "Merkez"],
+      "Çanakkale": ["Ayvacık", "Bayramiç", "Biga", "Bozcaada", "Çan", "Eceabat", "Gelibolu", "Lapseki", "Merkez"],
+      "Çankırı": ["Atkaracalar", "Çerkeş", "Eldivan", "Ilgaz", "Kızılcahamam", "Kurşunlu", "Orta", "Şabanözü", "Yapraklı", "Merkez"],
+      "Çorum": ["Alaca", "Bayat", "Boğazkale", "Dodurga", "İskilip", "Kargı", "Mecitözü", "Osmancık", "Sungurlu", "Merkez"],
+      "Denizli": ["Acıpayam", "Babadağ", "Bekilli", "Bozkurt", "Çal", "Çivril", "Güney", "Kale", "Merkezefendi", "Pamukkale", "Serinhisar", "Tavas"],
+      "Diyarbakır": ["Bağlar", "Bismil", "Çermik", "Çınar", "Derik", "Eğil", "Ergani", "Hani", "Hazro", "Kocaköy", "Kulp", "Lice", "Silvan", "Sur", "Yenişehir"],
+      "Edirne": ["Enez", "Havsa", "İpsala", "Keşan", "Lalapaşa", "Meriç", "Süleymanpaşa", "Uzunköprü"],
+      "Elazığ": ["Ağın", "Alacakaya", "Arıcak", "Baskil", "Karakoçan", "Keban", "Kovancılar", "Maden", "Palu", "Sivrice", "Merkez"],
+      "Erzincan": ["Tüm ilçeler", "Merkez", "Çayırlı", "İliç", "Kemah"],
+      "Erzurum": ["Aziziye", "Hınıs", "İspir", "Karaçoban", "Köprüköy", "Narman", "Oltu", "Olur", "Palandöken", "Pasinler", "Pazaryolu", "Şenkaya", "Tekman", "Tortum", "Yakutiye"],
+      "Eskişehir": ["Alpu", "Beşeri", "Çifteler", "Günyüzü", "Han", "İnönü", "Mahmudiye", "Mihalıççık", "Odunpazarı", "Sarıcakaya", "Tepebaşı", "Merkez"],
+      "Gaziantep": ["Şahinbey", "Şehitkamil", "Oğuzeli", "Araban", "Nizip", "Karkamış", "Merkez"],
+      "Giresun": ["Alucra", "Bulancak", "Çamoluk", "Dereli", "Espiye", "Eynesil", "Görele", "Keşap", "Piraziz", "Şebinkarahisar", "Tirebolu", "Yağlıdere", "Merkez"],
+      "Gümüşhane": ["Kelkit", "Kürtün", "Merkez", "Şiran", "Torul"],
+      "Hakkari": ["Çukurca", "Merkez", "Şemdinli", "Yüksekova"],
+      "Hatay": ["Altınözü", "Antakya", "Defne", "Dörtyol", "Erzin", "Hassa", "İskenderun", "Kumlu", "Samandağ", "Reyhanlı"],
+      "Iğdır": ["Aralık", "Merkez", "Karakoyunlu", "Tuzluca"],
+      "Isparta": ["Aksu", "Göller", "Keçiborlu", "Senirkent", "Sütçüler", "Uluborlu", "Yalvaç", "Merkez"],
+      "İstanbul": ["Adalar", "Arnavutköy", "Ataşehir", "Avcılar", "Bağcılar", "Bahçelievler", "Bakırköy", "Başakşehir", "Bayrampaşa",],
+      "İzmir": ["Aliağa", "Bayraklı", "Bergama", "Beydağ", "Bornova", "Buca", "Çiğli", "Gaziemir", "Gediz", "Karabağlar", "Karaburun", "Kemalpaşa", "Kınık", "Kiraz", "Menemen", "Menderes", "Narlıdere", "Seferihisar", "Selçuk", "Tire", "Torbalı", "Urla"],
+      "Kahramanmaraş": ["Andırın", "Dulkadiroğlu", "Ekinözü", "Onikişubat", "Türkoğlu", "Merkez"],
+      "Karabük": ["Eflani", "Eskipazar", "Ovacık", "Safranbolu", "Söğütlü", "Merkez"],
+      "Karaman": ["Ayrancı", "Başyayla", "Ermenek", "Kazımkarabekir", "Merkez", "Sarayhan", "Susuz"],
+      "Kars": ["Ardahan", "Akyaka", "Digor", "Kağızman", "Merkez", "Sarıkamış", "Selim", "Susuz"],
+      "Kastamonu": ["Abana", "Ağlı", "Azdavay", "Bozkurt", "Çatalzeytin", "Daday", "Devrekani", "Hanönü", "İnebolu", "Kastamonu Merkez", "Küre", "Pınarbaşı", "Şenpazar", "Taşköprü", "Tosya"],
+      "Kayseri": ["Akkışla", "Bünyan", "Develi", "Felahiye", "Hacılar", "İncesu", "Kocasinan", "Melikgazi", "Özvatan", "Pınarbaşı", "Sarıoğlan", "Tomarza", "Yahyalı", "Yeşilhisar", "Merkez"],
+      "Kırıkkale": ["Bahşili", "Delice", "Keskin", "Sulakyurt", "Merkez", "Yahşihan"],
+      "Kırklareli": ["Babaeski", "Demirköy", "Kofçaz", "Lüleburgaz", "Meriç", "Pehlivanköy", "Pınarhisar", "Vize"],
+      "Kırşehir": ["Akpınar", "Çiçekdağı", "Kaman", "Mucur", "Merkez"],
+      "Kocaeli": ["Gebze", "Gölcük", "Kandıra", "Kartepe", "Başiskele", "Derince", "İzmit", "Körfez", "Dilovası", "Çayırova"],
+      "Konya": ["Akşehir", "Beyşehir", "Bozkır", "Çumra", "Derebucak", "Doğanhisar", "Emirgazi", "Ereğli", "Halkapınar", "Hadim", "Ilgın", "Kadınhanı", "Karatay", "Kulu", "Meram", "Seydişehir", "Selçuklu", "Yalıhüyük", "Cihanbeyli", "Kızılören"],
+      "Kütahya": ["Altıntaş", "Aslanapa", "Çavdarhisar", "Domaniç", "Dumlupınar", "Emet", "Gediz", "Hisarcık", "İhsaniye", "Kütahya Merkez", "Pazarlar", "Simav", "Şaphane", "Tavşanlı"],
+      "Malatya": ["Akçadağ", "Arguvan", "Battalgazi", "Darende", "Doğanşehir", "Hekimhan", "Kale", "Kuluncak", "Pütürge", "Yazıhan", "Yeşilyurt"],
+      "Manisa": ["Ahmetli", "Akhisar", "Demirtaş", "Gördes", "Kula", "Merkezefendi", "Saruhanlı", "Selendi", "Turgutlu", "Yunusemre", "Şehzadeler"],
+      "Mardin": ["Artuklu", "Derik", "Dargeçit", "Kızıltepe", "Mazıdağı", "Midyat", "Nusaybin", "Ömerli", "Savur", "Yeşilli"],
+      "Mersin": ["Akdeniz", "Anamur", "Bozyazı", "Çamlıyayla", "Erdemli", "Gülnar", "Mezitli", "Mut", "Silifke", "Tarsus", "Toroslar"],
+      "Muğla": ["Bodrum", "Dalaman", "Datça", "Fethiye", "Köyceğiz", "Marmaris", "Menteşe", "Ortaca", "Seydikemer", "Ula", "Yatağan"],
+      "Muş": ["Bulanık", "Malazgirt", "Hasköy", "Korkut", "Varto", "Merkez"],
+      "Nevşehir": ["Avanos", "Derinkuyu", "Gülşehir", "Hacıbektaş", "Kozaklı", "Nevşehir Merkez", "Acıgöl", "Ürgüp"],
+      "Niğde": ["Altunhisar", "Bor", "Çiftlik", "Niğde Merkez", "Ulukışla"],
+      "Ordu": ["Altınordu", "Çamaş", "Çatalpınar", "Fatsa", "Gölköy", "Gülyalı", "İkizce", "Kabadüz", "Kabataş", "Korgan", "Perşembe", "Ünye", "Akkuş"],
+      "Osmaniye": ["Bahçe", "Düziçi", "Kadirli", "Merkez", "Sumbas", "Toprakkale"],
+      "Rize": ["Ardeşen", "Çamlıhemşin", "Derepazarı", "Fındıklı", "Güneysu", "İyidere", "Kalkandere", "Pazar", "Rize Merkez", "Çayeli"],
+      "Sakarya": ["Adapazarı", "Akyazı", "Arifiye", "Erenler", "Hendek", "Karasu", "Kocaali", "Pamir", "Sapanca", "Serdivan", "Söğütlü"],
+      "Samsun": ["Atakum", "Bafra", "Çarşamba", "Havza", "Kavak", "Ladik", "Salıpazarı", "Vezirköprü", "Merkez"],
+      "Siirt": ["Baykan", "Eruh", "Kurtalan", "Pervari", "Siirt Merkez", "Şirvan"],
+      "Sinop": ["Ayancık", "Boyabat", "Durağan", "Erfelek", "Gerze", "Saraydüzü", "Sinop Merkez", "Türkeli"],
+      "Sivas": ["Divriği", "Gölova", "Hafik", "İmranlı", "Kangal", "Kelkit", "Koyulhisar", "Sivas Merkez", "Suşehri", "Şarkışla", "Zara"],
+      "Şanlıurfa": ["Birecik", "Bozova", "Ceylanpınar", "Eyyübiye", "Haliliye", "Harran", "Karaköprü", "Siverek", "Viranşehir"],
+      "Tekirdağ": ["Çerkezköy", "Çorlu", "Ergene", "Hayrabolu", "Marmara Ereğlisi", "Malkara", "Süleymanpaşa", "Şarköy"],
+      "Tokat": ["Artova", "Başçiftlik", "Erbaa", "Niksar", "Reşadiye", "Tokat Merkez", "Zile"],
+      "Trabzon": ["Akçaabat", "Araklı", "Arsin", "Beşikdüzü", "Çarşıbaşı", "Dernekpazarı", "Düzköy", "Hayrat", "Köprübaşı", "Maçka", "Of", "Sürmene", "Şalpazarı", "Vakfıkebir", "Yomra", "Merkez"],
+      "Tunceli": ["Çemişgezek", "Hozat", "Mazgirt", "Nazımiye", "Ovacık", "Pertek", "Pülümür", "Merkez"],
+      "Uşak": ["Banaz", "Eşme", "Karahallı", "Sivaslı", "Ulubey", "Merkez"],
+      "Van": ["Çatak", "Edremit", "Gevaş", "Gürpınar", "İpekyolu", "Muradiye", "Özalp", "Tuşba", "Merkez"],
+      "Yalova": ["Altınova", "Armutlu", "Çınarçık", "Demirtaş", "Devlet", "Merkez", "Termal"],
+      "Yozgat": ["Akdağmadeni", "Boğazlıyan", "Çayıralan", "Kadışehri", "Saraykent", "Sorgun", "Şefaatli", "Yerköy", "Merkez"],
+      "Zonguldak": ["Alaplı", "Çaycuma", "Devrek", "Ereğli", "Gökçebey", "Kilimli", "Merkez", "Zonguldak"]
+            
+        };
+
+        function updateDistricts() {
+            const city = document.getElementById("city").value;
+            const districtInput = document.getElementById("district");
+            const districtList = document.getElementById("district-list");
+
+
+            // İlçe datalist'ini temizle
+            districtList.innerHTML = "";
+
+            // Seçilen şehre bağlı ilçeleri ekle
+            if (city !== "") {
+                iller[city].forEach(district => {
+                    const option = document.createElement("option");
+                    option.value = district;
+                    districtList.appendChild(option);
+                });
+            }
+        }
+        function setBackground(weatherDesc) {
+            let bgColor;
+            weatherDesc = weatherDesc.toLowerCase();
+
+            if (weatherDesc.includes("açık")) bgColor = "#87CEEB";         // Açık hava → Mavi
+             else if (weatherDesc.includes("güneşli")) bgColor = "#FFE4B5"; // Güneşli → Sarı
+            else if (weatherDesc.includes("bulutlu")) bgColor = "#B0C4DE"; // Bulutlu → Gri-Mavi
+            else if (weatherDesc.includes("yağmurlu")) bgColor = "#4682B4"; // Yağmurlu → Koyu Mavi
+            else if (weatherDesc.includes("karlı")) bgColor = "#DCDCDC";    // Karlı → Açık Gri
+            else if (weatherDesc.includes("fırtına")) bgColor = "#708090";  // Fırtınalı → Koyu Gri
+            else bgColor = "#FFFFFF"; // Varsayılan arka plan → Beyaz
+
+            document.body.style.background = bgColor;
+        }
+    </script>
+</head>
+<body 
+{% if weather %}
+onload="setBackground('{{ weather.description }}')"
+{% endif %}
+>
+    <h1>Hava Durumu Sorgula</h1>
+    <form method="POST">
+        <label for="city">İl:</label>
+        <input list="city-list" id="city" name="city" required onchange="updateDistricts()" placeholder="Şehir Seçin">
+        <datalist id="city-list">
+            <option value="">Şehir</option>
+            <option value="Adana">Adana</option>
+            <option value="Adıyaman">Adıyaman</option>
+            <option value="Afyonkarahisar">Afyonkarahisar</option>
+            <option value="Ağrı">Ağrı</option>
+            <option value="Amasya">Amasya</option>
+            <option value="Ankara">Ankara</option>
+            <option value="Antalya">Antalya</option>
+            <option value="Artvin">Artvin</option>
+            <option value="Aydın">Aydın</option>
+            <option value="Balıkesir">Balıkesir</option>
+            <option value="Bilecik">Bilecik</option>
+            <option value="Bingöl">Bingöl</option>
+            <option value="Bitlis">Bitlis</option>
+            <option value="Bolu">Bolu</option>
+            <option value="Burdur">Burdur</option>
+            <option value="Bursa">Bursa</option>
+            <option value="Çanakkale">Çanakkale</option>
+            <option value="Çankırı">Çankırı</option>
+            <option value="Çorum">Çorum</option>
+            <option value="Denizli">Denizli</option>
+            <option value="Diyarbakır">Diyarbakır</option>
+            <option value="Edirne">Edirne</option>
+            <option value="Elazığ">Elazığ</option>
+            <option value="Erzincan">Erzincan</option>
+            <option value="Erzurum">Erzurum</option>
+            <option value="Eskişehir">Eskişehir</option>
+            <option value="Gaziantep">Gaziantep</option>
+            <option value="Giresun">Giresun</option>
+            <option value="Gümüşhane">Gümüşhane</option>
+            <option value="Hakkari">Hakkari</option>
+            <option value="Hatay">Hatay</option>
+            <option value="Iğdır">Iğdır</option>
+            <option value="Isparta">Isparta</option>
+            <option value="İstanbul">İstanbul</option>
+            <option value="İzmir">İzmir</option>
+            <option value="Kahramanmaraş">Kahramanmaraş</option>
+            <option value="Karabük">Karabük</option>
+            <option value="Kars">Kars</option>
+            <option value="Karaman">Karaman</option>
+            <option value="Kastamonu">Kastamonu</option>
+            <option value="Kayseri">Kayseri</option>
+            <option value="Kırıkkale">Kırıkkale</option>
+            <option value="Kırklareli">Kırklareli</option>
+            <option value="Kırşehir">Kırşehir</option>
+            <option value="Kocaeli">Kocaeli</option>
+            <option value="Konya">Konya</option>
+            <option value="Kütahya">Kütahya</option>
+            <option value="Malatya">Malatya</option>
+            <option value="Manisa">Manisa</option>
+            <option value="Mardin">Mardin</option>
+            <option value="Mersin">Mersin</option>
+            <option value="Muğla">Muğla</option>
+            <option value="Muş">Muş</option>
+            <option value="Nevşehir">Nevşehir</option>
+            <option value="Niğde">Niğde</option>
+            <option value="Ordu">Ordu</option>
+            <option value="Osmaniye">Osmaniye</option>
+            <option value="Rize">Rize</option>
+            <option value="Sakarya">Sakarya</option>
+            <option value="Samsun">Samsun</option>
+            <option value="Siirt">Siirt</option>
+            <option value="Sinop">Sinop</option>
+            <option value="Sivas">Sivas</option>
+            <option value="Şanlıurfa">Şanlıurfa</option>
+            <option value="Tekirdağ">Tekirdağ</option>
+            <option value="Tokat">Tokat</option>
+            <option value="Trabzon">Trabzon</option>
+            <option value="Tunceli">Tunceli</option>
+            <option value="Uşak">Uşak</option>
+            <option value="Van">Van</option>
+            <option value="Yalova">Yalova</option>
+            <option value="Yozgat">Yozgat</option>
+            <option value="Zonguldak">Zonguldak</option>
+        </datalist>
+
+        <br><br>
+
+        <label for="district">İlçe:</label>
+        <input list="district-list" id="district" name="district" placeholder="İlçe Seçin">
+        <datalist id="district-list">
+        </datalist>
+
+        <br><br>
+
+        <button type="submit">Sorgula</button>
+    </form>
+
+    {% if error %}
+        <p class="important">{{ error }}</p>
+    {% endif %}
+
+    {% if weather %}
+    <div class="container" style="margin-top: 50px;"> 
+        <h2>{{ weather.city }}{% if weather.district %} - {{ weather.district }}{% endif %} İçin Hava Durumu:</h2>
+        
+        {% if current_time %}
+          <p><strong>Anlık Tarih ve Saat:</strong> {{ current_time }}</p>
+        {% endif %}
+        
+        <p><strong><span class="important">Hava Durumu:</span></strong> {{ weather.description }}</p>
+        <p><strong><span class="important">Sıcaklık:</span></strong> {{ weather.temperature }}°C</p>
+        <p><strong><span class="important">Rüzgar:</span></strong> {{ weather.wind }} km/s</p>
+        <p><strong><span class="important">Nem:</span></strong> {{ weather.humidity }}%</p>
+        <p><strong><span class="important">Yağış Oranı:</span></strong> {{ weather.precipitation }} mm</p>
+
+        <!-- Hava Durumu Simgesi -->
+        <div class="weather-icons" style="display: flex; justify-content: center; align-items: center; margin-top: 40px;"> <!-- margin-top ile simgeyi biraz daha aşağıya kaydırdık -->
+            <div class="weather-box">
+                {% if "güneşli" in weather.description | lower or "açık hava" in weather.description | lower %}
+                    <i class="wi wi-day-sunny" style="font-size: 70px; color: gold;"></i>
+                
+                {% elif "bulutlu" in weather.description | lower %}
+                    <i class="wi wi-cloud" style="font-size: 70px; color: gray;"></i>
+                
+                {% elif "hafif yağmur" in weather.description | lower %}
+                    <i class="wi wi-showers" style="font-size: 70px; color: blue;"></i>
+                
+                {% elif "yağmur" in weather.description | lower %}
+                    <i class="wi wi-rain" style="font-size: 70px; color: darkblue;"></i>
+                
+                {% elif "fırtına" in weather.description | lower %}
+                    <i class="wi wi-thunderstorm" style="font-size: 70px; color: darkgray;"></i>
+                
+                {% elif "kar" in weather.description | lower %}
+                    <i class="wi wi-snow" style="font-size: 70px; color: white;"></i>
+                
+                {% elif "sis" in weather.description | lower %}
+                    <i class="wi wi-fog" style="font-size: 70px; color: lightgray;"></i>
+                
+                {% else %}
+                    <i class="wi wi-na" style="font-size: 70px; color: lightgray;"></i>
+                {% endif %}
+            </div> 
+        </div>
+    </div>
+{% endif %}
+</body>
+</html>
+
